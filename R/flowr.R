@@ -1,6 +1,6 @@
-#' #' @useDynLib floR
-#' #' @importFrom Rcpp sourceCpp
-#' NULL
+#' @useDynLib floR
+#' @importFrom Rcpp sourceCpp
+NULL
 
 #' @title floR package
 #' @name floR-package
@@ -12,7 +12,7 @@ NULL
 #' @rdname flowr
 #' @name flowr
 #' @description A wrapper function around the groovy 'GFlow' software to using in dynamic metapopulation models.
-#' @param habitat A habitat map or resistance surface, this need to be a raster (.asc).
+#' @param resistance A habitat map or resistance surface, this need to be a raster. (.asc).
 #' @param populations A set focal nodes or source/destination populations (.txt list of point pairs to calculate or .asc grid).
 #' Inputs must be points.
 #' @param output_format The required output format, the default is a raster.
@@ -66,9 +66,54 @@ NULL
 # install_github("jtilly/taoR") - required for <petsc.h>
 # need to install mpi too. Looks like this will be a lot easier to develop on linux.
 
-flowr <- function(habitat, populations, output_format="asc", output_dir = "./", cores=4, control=list()){
+#' @importFrom raster raster writeRaster
+#' @importFrom readr read_file read_table type_convert
+#' @importFrom methods setGeneric setMethod
+#' @importFrom rgdal gdalDrivers
+#'
+#' @examples
+#' library(raster)
+#' resist1 <- raster(matrix(runif(200^2, 0, 1), 200))
+#' pops1 <- matrix(runif(50),25)
+#'
+#' @export
+#'
+#'
+# Ok I can get it to run from system - assuming you have installed it
+# we should be able to replace these calls with r object, similar to rzonation. However that not that satisifying as we really want to compile it within and r and call it as an r function/internal.
 
-         # test <- .Call( "gflow", as.numeric( y), as.numeric( mu.N), as.numeric( mu.Z), as.numeric( alpha), as.integer(LOG),PACKAGE="floR")
+setwd("/home/woo457/gflow/GFlow-master/")
+test <-  paste0("mpiexec -n 4 ./gflow.x '\'",
+       "-habitat resistance.asc '\'",
+       "-nodes nodes '\'",
+       "-converge_at 1N '\'",
+       "-shuffle_node_pairs 1 '\'",
+       "-effective_resistance ./R_eff.csv '\'",
+       "-output_sum_density_filename ./{time}_local_sum_{iter}.asc '\'")
+base::system(test);
+
+
+
+setGeneric(
+  "flowr",
+  function(resistance,
+           populations,
+           output_format = "raster",
+           output_dir = NULL,
+           cores = 4,
+           control=list()) {
+    standardGeneric("flowr");
+  }
+);
+
+flowr_raster <- function(resistance,
+                         populations,
+                         output_format,
+                         output_dir,
+                         cores,
+                         control){
+
+         # test <- .Call("gflow", as.numeric( y), as.numeric( mu.N), as.numeric( mu.Z), as.numeric( alpha), as.integer(LOG),PACKAGE="floR")
 
 }
 
